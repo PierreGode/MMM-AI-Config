@@ -1,0 +1,12 @@
+.MMM-AI-Config .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: auto;
+}
+.MMM-AI-Config .green {
+  background-color: #0f0;
+}
+.MMM-AI-Config .red {
+  background-color: #f00;
+}

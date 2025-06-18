@@ -6,7 +6,7 @@ This module provides a small web interface that leverages OpenAI to update your 
 
 1. Set the environment variable `OPENAI_API_KEY` with your API key.
 2. Run `node server.js` inside this folder.
-3. Open `http://localhost:8080` in a browser and chat your configuration requests.
+3. Open `http://localhost:5006` in a browser and chat your configuration requests using the admin page served from the `public` directory (`admin.html`).
 
 Every change will back up the existing `config.js` file by appending the current timestamp to the file name before writing the new content returned by OpenAI.
 

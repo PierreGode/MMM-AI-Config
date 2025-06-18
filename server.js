@@ -3,7 +3,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5006;
 const MAGICMIRROR_ROOT = path.join(__dirname, '..', '..');
 const CONFIG_FILE = path.join(MAGICMIRROR_ROOT, 'config', 'config.js');
 const MODULES_DIR = path.join(MAGICMIRROR_ROOT, 'modules');
@@ -88,7 +88,7 @@ const server = http.createServer((req, res) => {
     return handleChat(req, res);
   }
   // static
-  let filePath = path.join(PUBLIC_DIR, req.url === '/' ? '/web.html' : req.url);
+  let filePath = path.join(PUBLIC_DIR, req.url === '/' ? '/admin.html' : req.url);
   fs.readFile(filePath, (err, content) => {
     if (err) {
       res.writeHead(404);

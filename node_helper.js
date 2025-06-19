@@ -58,6 +58,37 @@ module.exports = NodeHelper.create({
     const MODULES_DIR = path.join(MAGICMIRROR_ROOT, "modules");
     const PUBLIC_DIR = path.join(__dirname, "public");
 
+    const loadConfig = () => {
+      try {
+        delete require.cache[require.resolve(CONFIG_FILE)];
+        return require(CONFIG_FILE);
+      } catch (e) {
+        return null;
+      }
+    };
+
+    const saveConfig = configObj => {
+      try {
+        const ts = new Date().toISOString().replace(/[:.]/g, "-");
+        fs.copyFileSync(CONFIG_FILE, `${CONFIG_FILE}.${ts}`);
+        const output =
+          "var config = " +
+          JSON.stringify(configObj, null, 2) +
+          ";\nif (typeof module !== 'undefined') { module.exports = config; }\n";
+        fs.writeFileSync(CONFIG_FILE, output);
+      } catch (e) {}
+    };
+
+    const applyChanges = (configObj, changes) => {
+      if (!changes || !Array.isArray(changes.modules)) return;
+      changes.modules.forEach(change => {
+        const target = configObj.modules.find(m => m.module === change.module);
+        if (target && change.config && typeof change.config === "object") {
+          Object.assign(target, change.config);
+        }
+      });
+    };
+
     const readBody = (req, cb) => {
       let data = "";
       req.on("data", chunk => (data += chunk));
@@ -111,15 +142,15 @@ module.exports = NodeHelper.create({
           return res.end("Invalid request");
         }
 
-        let configText = "";
-        try {
-          configText = fs.readFileSync(CONFIG_FILE, "utf8");
-        } catch (e) {}
+        const configObj = loadConfig() || { modules: [] };
         let modules = [];
         try {
           modules = fs.readdirSync(MODULES_DIR);
         } catch (e) {}
-        const prompt = `Config:\n${configText}\nModules:${modules.join(", ")}\nUser request:${msg}\nReturn updated config.js file only, do not alter the config.js in any other way, do not remove code unless asked for. help the user up update the config.js acording to magic mirror standard.`;
+        const prompt =
+          `Current config: ${JSON.stringify(configObj)}\nModules: ${modules.join(", ")}\n` +
+          `User request: ${msg}\n` +
+          `Return ONLY JSON in the format {"modules":[{"module":"name","config":{"key":"value"}}]}`;
 
         sendOpenAIRequest(prompt, (err, answer) => {
           if (err) {
@@ -127,10 +158,13 @@ module.exports = NodeHelper.create({
             return res.end(JSON.stringify({ error: "OpenAI error" }));
           }
           try {
-            const ts = new Date().toISOString().replace(/[:.]/g, "-");
-            fs.copyFileSync(CONFIG_FILE, `${CONFIG_FILE}.${ts}`);
-            fs.writeFileSync(CONFIG_FILE, answer);
-          } catch (e) {}
+            const changes = JSON.parse(answer);
+            applyChanges(configObj, changes);
+            saveConfig(configObj);
+          } catch (e) {
+            res.writeHead(500);
+            return res.end(JSON.stringify({ error: "Invalid AI response" }));
+          }
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ reply: answer }));
         });

@@ -1,7 +1,8 @@
 Module.register("MMM-AI-Config", {
   defaults: {
     openAiApiKey: "",
-    showDot: true
+    showDot: true,
+    adminPort: 5006
   },
 
   start: function() {
@@ -9,6 +10,10 @@ Module.register("MMM-AI-Config", {
     if (this.config.openAiApiKey) {
       this.sendSocketNotification("CHECK_KEY", this.config.openAiApiKey);
     }
+    this.sendSocketNotification("INIT_SERVER", {
+      port: this.config.adminPort,
+      openAiApiKey: this.config.openAiApiKey
+    });
   },
 
   socketNotificationReceived: function(notification, payload) {

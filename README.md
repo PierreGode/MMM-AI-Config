@@ -4,9 +4,11 @@ This module provides a small web interface that leverages OpenAI to update your 
 
 ## Usage
 
-1. Set the environment variable `OPENAI_API_KEY` with your API key.
-2. Run `node server.js` inside this folder.
-3. Open `http://localhost:5006` in a browser and chat your configuration requests using the admin page served from the `public` directory (`admin.html`).
+1. Set the environment variable `OPENAI_API_KEY` with your API key (or provide it via the module configuration).
+2. Add the module to your `config.js` and start MagicMirror. The configuration interface will automatically launch.
+3. Open `http://<magicmirror-ip>:5006` (or your configured port) in a browser and chat your configuration requests using the admin page served from the `public` directory (`admin.html`).
+
+The port can be changed with the `adminPort` configuration option.
 
 Every change will back up the existing `config.js` file by appending the current timestamp to the file name before writing the new content returned by OpenAI.
 
@@ -22,7 +24,8 @@ Add the module to your `config.js`:
   position: "top_left",
   config: {
     openAiApiKey: "YOUR_OPENAI_API_KEY",
-    showDot: true
+    showDot: true,
+    adminPort: 5006
   }
 }
 ```

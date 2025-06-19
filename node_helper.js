@@ -66,7 +66,7 @@ module.exports = NodeHelper.create({
 
     const sendOpenAIRequest = (prompt, cb) => {
       const body = JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4.1-nano",
         messages: [{ role: "user", content: prompt }]
       });
 
@@ -119,7 +119,7 @@ module.exports = NodeHelper.create({
         try {
           modules = fs.readdirSync(MODULES_DIR);
         } catch (e) {}
-        const prompt = `Config:\n${configText}\nModules:${modules.join(", ")}\nUser request:${msg}\nReturn updated config.js file only.`;
+        const prompt = `Config:\n${configText}\nModules:${modules.join(", ")}\nUser request:${msg}\nReturn updated config.js file only, do not alter the config.js in any other way, do not remove code unless asked for. help the user up update the config.js acording to magic mirror standard.`;
 
         sendOpenAIRequest(prompt, (err, answer) => {
           if (err) {

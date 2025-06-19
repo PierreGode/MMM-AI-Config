@@ -10,6 +10,8 @@ document.getElementById('form').addEventListener('submit', async function(e){
   let data = await res.json();
   if(data.reply){
     chat.innerHTML += `<div class="ai">${data.reply}</div>`;
+  }else if(data.error){
+    chat.innerHTML += `<div class="ai">Error: ${data.error}</div>`;
   }else{
     chat.innerHTML += `<div class="ai">Error</div>`;
   }

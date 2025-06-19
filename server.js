@@ -10,6 +10,18 @@ const MODULES_DIR = path.join(MAGICMIRROR_ROOT, 'modules');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 
+function parseJsonFromText(text) {
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    const match = text.match(/{[\s\S]*}/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
+    throw err;
+  }
+}
+
 function loadConfig() {
   try {
     delete require.cache[require.resolve(CONFIG_FILE)];
@@ -105,7 +117,7 @@ function handleChat(req, res) {
         return res.end(JSON.stringify({ error: 'OpenAI error' }));
       }
       try {
-        const changes = JSON.parse(answer);
+        const changes = parseJsonFromText(answer);
         applyChanges(configObj, changes);
         saveConfig(configObj);
       } catch (e) {

@@ -59,6 +59,7 @@ function readBody(req, cb) {
 }
 
 function sendOpenAIRequest(prompt, cb) {
+  console.log('Sending prompt to OpenAI:', prompt);
   const body = JSON.stringify({
     model: 'gpt-3.5-turbo',
     messages: [{role: 'user', content: prompt}]
@@ -79,6 +80,7 @@ function sendOpenAIRequest(prompt, cb) {
     let data = '';
     res.on('data', chunk => data += chunk);
     res.on('end', () => {
+      console.log('OpenAI raw response:', data);
       try {
         const json = JSON.parse(data);
         const reply = json.choices[0].message.content;
@@ -102,6 +104,7 @@ function handleChat(req, res) {
       res.writeHead(400);
       return res.end('Invalid request');
     }
+    console.log('User message:', msg);
 
     const configObj = loadConfig() || { modules: [] };
     let modules = [];
@@ -116,11 +119,13 @@ function handleChat(req, res) {
         res.writeHead(500);
         return res.end(JSON.stringify({ error: 'OpenAI error' }));
       }
+      console.log('AI answer:', answer);
       try {
         const changes = parseJsonFromText(answer);
         applyChanges(configObj, changes);
         saveConfig(configObj);
       } catch (e) {
+        console.error('Failed to parse AI response', answer, e);
         res.writeHead(500);
         return res.end(JSON.stringify({ error: 'Invalid AI response' }));
       }

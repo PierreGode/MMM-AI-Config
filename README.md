@@ -10,6 +10,11 @@ This module provides a small web interface that leverages OpenAI to update your 
 
 The port can be changed with the `adminPort` configuration option.
 
+For better results, MMM-AI-Config reads the `README.md` file from every module
+in your MagicMirror `modules` directory. These READMEs should describe the
+configuration options available for each module so the AI can suggest accurate
+changes.
+
 After sending a request, the server returns the JSON changes proposed by OpenAI. The admin page will show these changes and let you approve or reject them. Only approved changes are written to `config.js`. When a change is applied, the previous file is backed up by appending the current timestamp to its name.
 
 ## MagicMirror Module

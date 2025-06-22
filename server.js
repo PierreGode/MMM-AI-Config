@@ -126,9 +126,22 @@ function handleChat(req, res) {
 
     const configObj = loadConfig() || { modules: [] };
     let modules = [];
-    try { modules = fs.readdirSync(MODULES_DIR); } catch (e) {}
+    try {
+      modules = fs.readdirSync(MODULES_DIR);
+    } catch (e) {}
+
+    const readmes = {};
+    modules.forEach(m => {
+      const p = path.join(MODULES_DIR, m, 'README.md');
+      try {
+        readmes[m] = fs.readFileSync(p, 'utf8').replace(/\r?\n/g, ' ').slice(0, 500);
+      } catch (e) {}
+    });
+
     const prompt =
-      `Current config: ${JSON.stringify(configObj)}\nModules: ${modules.join(', ')}\n` +
+      `Current config: ${JSON.stringify(configObj)}\n` +
+      `Modules: ${modules.join(', ')}\n` +
+      `Module docs: ${JSON.stringify(readmes)}\n` +
       `User request: ${msg}\n` +
       `Return ONLY JSON in the format {"modules":[{"module":"name","config":{"key":"value"}}]}`;
 

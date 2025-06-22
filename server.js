@@ -52,20 +52,40 @@ function applyChanges(configObj, changes) {
   });
 }
 
+function deepEqual(a, b) {
+  if (a === b) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) {
+    return false;
+  }
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  for (const key of keysA) {
+    if (!deepEqual(a[key], b[key])) return false;
+  }
+  return true;
+}
+
 function computeDiff(configObj, changes) {
   const diffs = [];
   if (!changes || !Array.isArray(changes.modules)) return diffs;
   changes.modules.forEach(change => {
     const target = configObj.modules.find(m => m.module === change.module);
-    if (target && change.config && typeof change.config === 'object') {
-      const modDiff = { module: change.module, changes: [] };
+    const modDiff = { module: change.module, changes: [] };
+    if (!target) {
+      if (change.config && typeof change.config === 'object') {
+        Object.entries(change.config).forEach(([key, val]) => {
+          modDiff.changes.push({ key, before: undefined, after: val });
+        });
+      }
+    } else if (change.config && typeof change.config === 'object') {
       Object.entries(change.config).forEach(([key, val]) => {
-        if (target[key] !== val) {
+        if (!deepEqual(target[key], val)) {
           modDiff.changes.push({ key, before: target[key], after: val });
         }
       });
-      if (modDiff.changes.length) diffs.push(modDiff);
     }
+    if (modDiff.changes.length) diffs.push(modDiff);
   });
   return diffs;
 }

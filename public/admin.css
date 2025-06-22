@@ -94,3 +94,11 @@ pre{
   margin-right:5px;
 }
 
+.diff-add{
+  color:green;
+}
+
+.diff-remove{
+  color:red;
+}
+

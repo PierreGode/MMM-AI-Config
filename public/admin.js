@@ -45,15 +45,17 @@ function appendAiMessage(text,changes,diff){
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className='message ai';
-  const msgSpan = document.createElement('div');
-  msgSpan.textContent=text;
-  div.appendChild(msgSpan);
   if(diff && diff.length){
     div.appendChild(renderDiff(diff));
-  }else if(changes){
-    const pre = document.createElement('pre');
-    pre.textContent=JSON.stringify(changes,null,2);
-    div.appendChild(pre);
+  }else{
+    const msgSpan = document.createElement('div');
+    msgSpan.textContent=text;
+    div.appendChild(msgSpan);
+    if(changes){
+      const pre = document.createElement('pre');
+      pre.textContent=JSON.stringify(changes,null,2);
+      div.appendChild(pre);
+    }
   }
   if(changes){
     const btnWrap=document.createElement('div');

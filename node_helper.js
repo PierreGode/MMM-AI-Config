@@ -89,6 +89,24 @@ module.exports = NodeHelper.create({
       });
     };
 
+    const computeDiff = (configObj, changes) => {
+      const diffs = [];
+      if (!changes || !Array.isArray(changes.modules)) return diffs;
+      changes.modules.forEach(change => {
+        const target = configObj.modules.find(m => m.module === change.module);
+        if (target && change.config && typeof change.config === "object") {
+          const modDiff = { module: change.module, changes: [] };
+          Object.entries(change.config).forEach(([key, val]) => {
+            if (target[key] !== val) {
+              modDiff.changes.push({ key, before: target[key], after: val });
+            }
+          });
+          if (modDiff.changes.length) diffs.push(modDiff);
+        }
+      });
+      return diffs;
+    };
+
     const parseJsonFromText = text => {
       try {
         return JSON.parse(text);
@@ -183,8 +201,9 @@ module.exports = NodeHelper.create({
           } catch (e) {
             console.error("Failed to parse AI response", answer, e);
           }
+          const diff = computeDiff(configObj, changes);
           res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ reply: answer, changes }));
+          res.end(JSON.stringify({ reply: answer, changes, diff }));
         });
       });
     };

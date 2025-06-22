@@ -20,7 +20,7 @@ document.getElementById('form').addEventListener('submit', async function(e){
     const data = await res.json();
     chat.removeChild(loading);
     if(data.reply){
-      appendAiMessage(data.reply, data.changes);
+      appendAiMessage(data.reply, data.changes, data.diff);
     }else if(data.error){
       appendMessage('Error: '+data.error,'ai');
     }else{
@@ -41,17 +41,21 @@ function appendMessage(text,cls){
   chat.scrollTop = chat.scrollHeight;
 }
 
-function appendAiMessage(text,changes){
+function appendAiMessage(text,changes,diff){
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className='message ai';
   const msgSpan = document.createElement('div');
   msgSpan.textContent=text;
   div.appendChild(msgSpan);
-  if(changes){
+  if(diff && diff.length){
+    div.appendChild(renderDiff(diff));
+  }else if(changes){
     const pre = document.createElement('pre');
     pre.textContent=JSON.stringify(changes,null,2);
     div.appendChild(pre);
+  }
+  if(changes){
     const btnWrap=document.createElement('div');
     btnWrap.className='approval-buttons';
     const yes=document.createElement('button');
@@ -72,4 +76,25 @@ function appendAiMessage(text,changes){
   }
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+}
+
+function renderDiff(diff){
+  const pre=document.createElement('pre');
+  pre.className='diff';
+  diff.forEach(mod=>{
+    const modLine=document.createElement('div');
+    modLine.textContent=mod.module+':';
+    pre.appendChild(modLine);
+    mod.changes.forEach(c=>{
+      const rem=document.createElement('div');
+      rem.className='diff-remove';
+      rem.textContent=`- ${c.key}: ${JSON.stringify(c.before)}`;
+      pre.appendChild(rem);
+      const add=document.createElement('div');
+      add.className='diff-add';
+      add.textContent=`+ ${c.key}: ${JSON.stringify(c.after)}`;
+      pre.appendChild(add);
+    });
+  });
+  return pre;
 }

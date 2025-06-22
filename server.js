@@ -114,30 +114,52 @@ function handleChat(req, res) {
       `User request: ${msg}\n` +
       `Return ONLY JSON in the format {"modules":[{"module":"name","config":{"key":"value"}}]}`;
 
-    sendOpenAIRequest(prompt, (err, answer) => {
-      if (err) {
-        res.writeHead(500);
-        return res.end(JSON.stringify({ error: 'OpenAI error' }));
-      }
-      console.log('AI answer:', answer);
-      try {
-        const changes = parseJsonFromText(answer);
-        applyChanges(configObj, changes);
-        saveConfig(configObj);
-      } catch (e) {
-        console.error('Failed to parse AI response', answer, e);
-        res.writeHead(500);
-        return res.end(JSON.stringify({ error: 'Invalid AI response' }));
-      }
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ reply: answer }));
-    });
+      sendOpenAIRequest(prompt, (err, answer) => {
+        if (err) {
+          res.writeHead(500);
+          return res.end(JSON.stringify({ error: 'OpenAI error' }));
+        }
+        console.log('AI answer:', answer);
+        let changes = null;
+        try {
+          changes = parseJsonFromText(answer);
+        } catch (e) {
+          console.error('Failed to parse AI response', answer, e);
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ reply: answer, changes }));
+      });
+  });
+}
+
+function handleApply(req, res) {
+  readBody(req, data => {
+    let changes;
+    try {
+      changes = JSON.parse(data).changes;
+    } catch (e) {}
+    if (!changes) {
+      res.writeHead(400);
+      return res.end('Invalid request');
+    }
+    const configObj = loadConfig() || { modules: [] };
+    try {
+      applyChanges(configObj, changes);
+      saveConfig(configObj);
+    } catch (e) {
+      res.writeHead(500);
+      return res.end(JSON.stringify({ error: 'Failed to apply changes' }));
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true }));
   });
 }
 
 const server = http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/chat') {
     return handleChat(req, res);
+  } else if (req.method === 'POST' && req.url === '/apply') {
+    return handleApply(req, res);
   }
   // static
   let filePath = path.join(PUBLIC_DIR, req.url === '/' ? '/admin.html' : req.url);

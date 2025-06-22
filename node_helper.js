@@ -177,24 +177,46 @@ module.exports = NodeHelper.create({
             return res.end(JSON.stringify({ error: "OpenAI error" }));
           }
           console.log("AI answer:", answer);
+          let changes = null;
           try {
-            const changes = parseJsonFromText(answer);
-            applyChanges(configObj, changes);
-            saveConfig(configObj);
+            changes = parseJsonFromText(answer);
           } catch (e) {
             console.error("Failed to parse AI response", answer, e);
-            res.writeHead(500);
-            return res.end(JSON.stringify({ error: "Invalid AI response" }));
           }
           res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ reply: answer }));
+          res.end(JSON.stringify({ reply: answer, changes }));
         });
+      });
+    };
+
+    const handleApply = (req, res) => {
+      readBody(req, data => {
+        let changes;
+        try {
+          changes = JSON.parse(data).changes;
+        } catch (e) {}
+        if (!changes) {
+          res.writeHead(400);
+          return res.end("Invalid request");
+        }
+        const configObj = loadConfig() || { modules: [] };
+        try {
+          applyChanges(configObj, changes);
+          saveConfig(configObj);
+        } catch (e) {
+          res.writeHead(500);
+          return res.end(JSON.stringify({ error: "Failed to apply changes" }));
+        }
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true }));
       });
     };
 
     this.server = http.createServer((req, res) => {
       if (req.method === "POST" && req.url === "/chat") {
         return handleChat(req, res);
+      } else if (req.method === "POST" && req.url === "/apply") {
+        return handleApply(req, res);
       }
       let filePath = path.join(PUBLIC_DIR, req.url === "/" ? "/admin.html" : req.url);
       fs.readFile(filePath, (err, content) => {

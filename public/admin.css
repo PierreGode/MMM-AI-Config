@@ -80,3 +80,17 @@ button{
   button{width:100%;}
 }
 
+pre{
+  background:#eee;
+  padding:8px;
+  overflow-x:auto;
+}
+
+.approval-buttons{
+  margin-top:5px;
+}
+
+.approval-buttons button{
+  margin-right:5px;
+}
+

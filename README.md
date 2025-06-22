@@ -10,7 +10,7 @@ This module provides a small web interface that leverages OpenAI to update your 
 
 The port can be changed with the `adminPort` configuration option.
 
-Every change will back up the existing `config.js` file by appending the current timestamp to the file name before writing the new content returned by OpenAI.
+After sending a request, the server returns the JSON changes proposed by OpenAI. The admin page will show these changes and let you approve or reject them. Only approved changes are written to `config.js`. When a change is applied, the previous file is backed up by appending the current timestamp to its name.
 
 ## MagicMirror Module
 
@@ -30,4 +30,4 @@ Add the module to your `config.js`:
 }
 ```
 
-Set `showDot` to `false` if you do not want the dot displayed.
+Set `showDot` to `false` in your `config.js` if you do not want the dot displayed.
